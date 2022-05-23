@@ -44,6 +44,8 @@ describe("betContract", async function () {
     const daiContract = await DaiContract.attach("0xeE609996ac3821499aEED5C57f3F7507D0bdC481");
     console.log("daiContract address:", daiContract.address);
 
+
+
     
 
 
@@ -54,42 +56,40 @@ describe("betContract", async function () {
   //   const result = await contract.GameScoreAsString();
   //   console.log("Result, ", result)
 
+  //const __approve2 = await daiContract.connect(account2).faucet("100000000000000000000000");
+
 
     // const _faucet = await daiContract.faucet("500000000000000000000", {from: accounts[1].address});
     //  await token.connect(signers[1]).mint(signers[0].address, 1001);
     //  await token.mint(signers[0].address, 1001, {from: signers[1].address});
 
     //   const approveTransfer1 = await daiContract.approve(daiContract.address, 200, {from: accounts[0].address});
-    const _approve1 = await daiContract.connect(account1).approve(betsContract.address, 300);
+    const _approve1 = await daiContract.connect(account1).approve(betsContract.address,  300000000000000000000n);
     console.log("await daiContract.connect(account1).approve(betsContract.address, 300): ", _approve1.hash)
 
-    const tx1 = await betsContract.connect(account1).setBet(0, 300);
+    const tx1 = await betsContract.connect(account1).setBet(0,300000000000000000000n);
     // setTimeout(() => {
     console.log("await betsContract.connect(account1).setBet(0, 300): ", tx1.hash)
     // }, 1000);
-    const _approve2 = await daiContract.connect(account2).approve(betsContract.address, 100);
+    const _approve2 = await daiContract.connect(account2).approve(betsContract.address, 100000000000000000000n);
     console.log("await daiContract.connect(account2).approve(betsContract.address, 100: ", _approve2.hash)
 
 
-    const tx2 = await betsContract.connect(account2).setBet(1, 100);
+
+    const tx2 = await betsContract.connect(account2).setBet(1,100000000000000000000n);
     console.log("await betsContract.connect(account2).setBet(1, 100) ", tx2.hash)
 
-
-    //  await daiContract.approve(daiContract.address, 200, {from: accounts[1].address});
-    //    await daiContract.approve(daiContract.address, 200);
-    //  await betsContract.setBet(1, 200, {from: accounts[0].address});
-    //  const transfer1 = await betsContract.setBet(1,200,{from: accounts[0].address});
     const _homeTotalBets = await betsContract.homeTotalBets();
     console.log("await betsContract.homeTotalBets(): ", _homeTotalBets.hash)
 
-    const homeTotalBets = _homeTotalBets.toNumber();
-    console.log("Home total bets:", homeTotalBets)
+//    const homeTotalBets = _homeTotalBets.toNumber();
+    console.log("Home total bets:", ethers.utils.formatEther(_homeTotalBets))
 
     const _awayTotalBets = await betsContract.awayTotalBets();
     console.log("await betsContract.awayTotalBets(): ", _awayTotalBets.hash)
 
-    const awayTotalBets = _awayTotalBets.toNumber();
-    console.log("Away total bets:", awayTotalBets)
+  //  const awayTotalBets = _awayTotalBets.toNumber();
+    console.log("Away total bets:", ethers.utils.formatEther(_awayTotalBets))
     
     await betsContract.connect(owner).closeBet();
 
@@ -130,32 +130,27 @@ describe("betContract", async function () {
     console.log("Match finished: ", _matchFinished)
 
     const _totalBetsBalance = await betsContract.connect(owner).totalBetsBalance()
-    console.log("totalBetsBalance: ", _totalBetsBalance.toNumber())
-
+    console.log("totalBetsBalance: ", ethers.utils.formatEther(_totalBetsBalance))
+    
     const account2Balance = await daiContract.connect(account2).balanceOf(account2.address);
-    console.log ("Account 2 Balance:", account2Balance.toString())
+    const a1 = ethers.utils.formatEther(account2Balance);
+    console.log ("Account 2 Balance pre claim:", a1);
+
+  //  const a1 = parseFloat(account2Balance);
 
     const _claimRewards = await betsContract.connect(account2).claimRewards()
-    console.log("await betsContract.connect(account1).claimRewards(): ", _claimRewards.hash)
+    console.log("await betsContract.connect(account2).claimRewards(): ", _claimRewards.hash)
 
     const _account2Balance = await daiContract.connect(account2).balanceOf(account2.address);
-    console.log ("Account 2 Balance:", _account2Balance.toString())
+    const a2 = ethers.utils.formatEther(_account2Balance);
+    console.log ("Account 2 Balance post claim:", a2);
+ //   const a2 = parseFloat(_account2Balance);
 
+    console.log("a1", a1);
+    console.log("a2", a2)
+    console.log("a2-a1", a2-a1);
 
-
-    // account1Balance = await daiContract.connect(account1).balanceOf(account1.address);
-    // console.log ("Account 1 Balance:", account1Balance)
-
-    //AHORA el usaurio de beria poder reclamar sus recompensas solo si el partido ha terminado(se puede sacar status de getwinner contract)
-
-    // console.log("Away total bets:", betsContract.awayTotalBets().toNumber(), "Home total bets:", homeTotalBets().toNumber(), "Tied total bets:", tiedTotalBets().toNumber());
-
-    // await betsContract.getMatchWinner()
-    // const winnerResult = await betsContract.matchWinner()
-    // console.log("Winner:", winnerResult)
-    // const parse = ethers.utils.parseBytes32String(winnerResult)
-    // console.log("Winner:", parse)
-    expect(400).to.equal(400)
+    expect(a2-a1).to.equal(400)
     //  expect(parse).to.equal("away") 
   });
 
