@@ -96,9 +96,9 @@ contract bets {
     }
 
     function claimRewards() public {
-        require(matchFinished == true, "matchFinished !=true ");
-        //  require (betBalances[msg.sender].option == matchWinner);
+        // require(matchFinished == true, "matchFinished !=true ");
         uint256 rewards;
+        rewards =100;
 
         if (
             matchWinner == _home &&
@@ -122,13 +122,8 @@ contract bets {
         rewards =
             (totalBetsBalance * betBalances[msg.sender].amount * 100) /
             subTotalFromSelectedBet;
-
-        //         if (matchWinner == betBalances[msg.sender].option){
-        //             rewards = betBalances[msg.sender].amount * 2;
-        //             withdrawBetRewards(rewards);
-        //         }
-
-        IERC20(tokenAddress).transfer(msg.sender, rewards / 100);
+            
+       IERC20(tokenAddress).transfer(msg.sender, rewards / 100);
     }
 
     function closeBet() public {

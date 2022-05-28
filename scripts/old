@@ -1,0 +1,30 @@
+require("@nomiclabs/hardhat-waffle");
+const { ethers } = require("hardhat");
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function main() {
+
+    [owner, account1, account2] = await ethers.getSigners();
+    const SuperBetContract = await hre.ethers.getContractFactory('superBetContract');
+    const superBetContract = SuperBetContract.attach("0xD0DE24E8Ca196CA16358798380319bA976f9EA55");
+    console.log(superBetContract.address) //SEND LINK TO ADDRESS
+
+    console.log("Open bet: ", await superBetContract.betOpen())
+
+
+    // await superBetContract.requestGameDetails();
+    // await superBetContract.requestGameScore();
+    // await sleep(30000); //Must wait that oracle use fullfill scoreAsString function 
+    // const score =  await superBetContract.gameScoreAsString();
+    // const details = await superBetContract.gameDetailsAsString();
+    // console.log("details", details )
+    // console.log("score", score )
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

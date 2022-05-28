@@ -1,0 +1,105 @@
+require("@nomiclabs/hardhat-waffle");
+
+const { expect } = require("chai");
+const { ethers } = require("hardhat");
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+describe("superBetContract", async function () {
+   this.timeout(1800000) 
+  
+  before(async () => {
+    [owner, account1, account2] = await ethers.getSigners();
+    
+    console.log("Owner:", owner.address);
+    console.log("Account 1:", account1.address);
+    console.log("Account 2:", account2.address);
+  })
+
+  it("Account 2 should win the bet and claim rewards", async function () {
+
+    const DaiContract = await ethers.getContractFactory('Dai');
+    const daiContract = await DaiContract.attach("0xeE609996ac3821499aEED5C57f3F7507D0bdC481");
+    console.log("daiContract address:", daiContract.address);
+
+    const SuperBetContract = await hre.ethers.getContractFactory("superBetContract");
+    const superBetContract = await SuperBetContract.deploy(3626086); //POSIBLE PUNTO DE FALLA, PUEDE SER QUE HAYA QUE PASARLO COMO STRING
+    await superBetContract.deployed();
+    console.log("deployed to:", superBetContract.address);
+
+    await hre.run("fund-link", { contract: superBetContract.address, linkaddress: "0xa36085F69e2889c224210F603D836748e7dC0088" })
+
+    const _approve1 = await daiContract.connect(account1).approve(superBetContract.address,  10000000000000000000n);
+    console.log("_approve1 transaction: ", _approve1.hash)
+
+    await sleep(10000);
+
+    const tx1 = await superBetContract.connect(account1).setBet(0,10000000000000000000n);
+    console.log("Tx1 transaction: ", tx1.hash)
+
+    const _approve2 = await daiContract.connect(account2).approve(superBetContract.address, 10000000000000000000n);
+    console.log("_approve2 transaction: ", _approve2.hash)
+
+    await sleep(10000);
+
+    const tx2 = await superBetContract.connect(account2).setBet(1,10000000000000000000n);
+    console.log("Tx2 transaction: ", tx2.hash)
+
+    await superBetContract.connect(owner).closeBet();
+
+    const _homeTotalBets = await superBetContract.homeTotalBets();
+    console.log("Home total bets:", ethers.utils.formatEther(_homeTotalBets))
+
+    const _awayTotalBets = await superBetContract.awayTotalBets();
+    console.log("Away total bets:", ethers.utils.formatEther(_awayTotalBets))
+
+    const _tiedTotalBets = await superBetContract.tiedTotalBets();
+    console.log("Tied total bets:", ethers.utils.formatEther(_tiedTotalBets))
+
+    const _requestGameDetails = await superBetContract.requestGameDetails();
+    console.log("_requestGameDetails transaction: ",_requestGameDetails.hash)
+    const _requestGameScore = await superBetContract.requestGameScore();
+    console.log("_requestGameScore transaction:", _requestGameScore.hash)
+    await sleep(60000);
+    const scoreAsString = await superBetContract.gameScoreAsString();
+    const gameDetailsAsString = await superBetContract.gameDetailsAsString();
+    console.log("Score As String: ", scoreAsString)
+    console.log("Game Details As String: ", gameDetailsAsString)
+
+    // const _setMatchFinished = await superBetContract.setMatchFinished()
+    // console.log("_setMatchFinished transaction: ", _setMatchFinished.hash)
+
+    const winnerResult = await superBetContract.getWinner()
+    console.log("await betsContract.matchWinner(): ", winnerResult.hash)
+    console.log("The Winner is:", await superBetContract.winner())
+
+    const _totalBetsBalance = await superBetContract.connect(owner).totalBetsBalance()
+    console.log("totalBetsBalance: ", ethers.utils.formatEther(_totalBetsBalance))
+    
+    const account2BalanceBefore = await daiContract.connect(account2).balanceOf(account2.address);
+    const _account2BalanceBefore = ethers.utils.formatEther(account2BalanceBefore);
+    console.log ("Account 2 Balance pre claim:", _account2BalanceBefore);
+
+    const _claimRewards = await superBetContract.connect(account2).claimRewards()
+    console.log("_claimRewards transaction: ", _claimRewards.hash)
+
+    const rewards = await superBetContract.connect(account2)._rewards()
+    console.log("rewards: ", ethers.utils.formatEther(rewards))
+
+    await sleep(10000);
+
+    const account2BalanceAfter = await daiContract.connect(account2).balanceOf(account2.address);
+    const _account2BalanceAfter = ethers.utils.formatEther(account2BalanceAfter);
+    console.log ("Account 2 Balance post claim:", _account2BalanceAfter);
+
+    console.log("account2BalanceBefore", _account2BalanceBefore);
+    console.log("account2BalanceAfter", _account2BalanceAfter)
+    console.log("account2BalanceAfter-account2BalanceBefore", _account2BalanceAfter - _account2BalanceBefore);
+
+    expect(_account2BalanceAfter-_account2BalanceBefore).to.equal(20)
+
+  });
+
+});
